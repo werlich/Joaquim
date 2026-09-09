@@ -1,0 +1,42 @@
+{% if joaquimetro_status %}
+<article class="joaquimetro joaquimetro-{{ joaquimetro_status.mode }}"
+         id="joaquimetro"
+         data-progress="{{ joaquimetro_status.progress }}">
+  <span class="joaquimetro-deco" aria-hidden="true">
+    <span class="cha-deco cha-deco-heart"></span>
+    <span class="cha-deco cha-deco-star"></span>
+    <span class="cha-deco cha-deco-leaf"></span>
+    <span class="cha-deco cha-deco-cloud"></span>
+  </span>
+  <p class="joaquimetro-label">Joaquímetro</p>
+  {% if joaquimetro_status.mode == 'arrived' %}
+  <p class="joaquimetro-msg">{{ joaquimetro_status.message }}</p>
+  {% else %}
+  <p class="joaquimetro-msg">A cada dia estou um pouquinho mais perto de vocês.</p>
+  {% endif %}
+  <p class="joaquimetro-pct">{{ joaquimetro_status.progress }}%</p>
+  <p class="joaquimetro-caption">da jornada até eu conhecer vocês</p>
+  <div class="joaquimetro-bar" role="progressbar"
+       aria-valuemin="0" aria-valuemax="100"
+       aria-valuenow="{{ joaquimetro_status.progress }}"
+       aria-label="Progresso da jornada até a chegada prevista: {{ joaquimetro_status.progress }} por cento">
+    <div class="joaquimetro-bar-fill"
+         style="--target: {{ joaquimetro_status.progress }}%;"
+         data-joaquimetro-fill></div>
+  </div>
+  <p class="joaquimetro-months">
+    {{ joaquimetro_status.months_done }} de {{ joaquimetro_status.months_total }} meses
+  </p>
+  {% if joaquimetro_status.mode == 'arrived' %}
+  <p class="joaquimetro-due-kicker">Chegada registrada</p>
+  <p class="joaquimetro-due">
+    previsão era {{ joaquimetro.due_date|date:"d" }} de {{ joaquimetro.due_date|date:"F"|lower }} de {{ joaquimetro.due_date|date:"Y" }}
+  </p>
+  {% else %}
+  <p class="joaquimetro-due-kicker">Chegada prevista</p>
+  <p class="joaquimetro-due">
+    {{ joaquimetro.due_date|date:"d" }} de {{ joaquimetro.due_date|date:"F"|lower }} de {{ joaquimetro.due_date|date:"Y" }}
+  </p>
+  {% endif %}
+</article>
+{% endif %}

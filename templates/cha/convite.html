@@ -1,0 +1,186 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %}Convite — Joaquim Werlich Galvão{% endblock %}
+{% block content %}
+<section class="invite-page">
+  <div class="invite-deco" aria-hidden="true">
+    <span class="deco deco-cloud deco-a"></span>
+    <span class="deco deco-star deco-b"></span>
+    <span class="deco deco-leaf deco-c"></span>
+    <span class="deco deco-heart deco-d"></span>
+    <span class="deco deco-bear deco-e">🧸</span>
+    <span class="deco deco-star deco-f"></span>
+    <span class="deco deco-cloud deco-g"></span>
+  </div>
+
+  <article class="invite-card">
+    <p class="invite-eyebrow">Chá de Bebê</p>
+    <h1 class="invite-name">Joaquim Werlich Galvão</h1>
+    <p class="invite-lead">
+      {{ event.invite_message|default:"Você é nosso convidado especial para celebrar a chegada do Joaquim 💚" }}
+    </p>
+
+    {% if event %}
+    <dl class="invite-meta">
+      <div><dt>Data</dt><dd>{{ event.event_date|date:"d/m/Y" }}</dd></div>
+      <div><dt>Horário</dt><dd>{{ event.time_label }}</dd></div>
+      <div class="invite-meta-wide"><dt>Local</dt><dd><span class="event-street">{{ event.location }}</span></dd></div>
+      {% if event.address %}
+      <div class="invite-meta-wide"><dt>Endereço</dt><dd>{{ event.address }}</dd></div>
+      {% endif %}
+    </dl>
+    {% include "cha/_event_map.html" %}
+    {% if event.info_text %}
+    <div class="invite-info prose">{{ event.info_text|linebreaks }}</div>
+    {% endif %}
+    {% else %}
+    <p class="meta">Em breve mais detalhes do evento.</p>
+    {% endif %}
+
+    <div class="invite-actions">
+      {% if already_authorized %}
+      <a class="btn btn-primary btn-lg btn-block invite-cta-gifts" href="{{ next_url }}">
+        {% if next_url|slice:":10" == "/timeline/" %}IR PARA A TIMELINE{% else %}LISTA DE PRESENTES{% endif %}
+      </a>
+      {% else %}
+      <button type="button" class="btn btn-primary btn-lg btn-block invite-cta-gifts" id="btn-open-access">
+        {% if next_url|slice:":10" == "/timeline/" %}ACESSAR A TIMELINE{% else %}LISTA DE PRESENTES{% endif %}
+      </button>
+      {% endif %}
+    </div>
+
+    {% if event and event.rsvp_active %}
+    <div class="invite-rsvp">
+      <h2>Você poderá comparecer?</h2>
+      <form method="post" action="{% url 'cha_rsvp' %}" id="form-rsvp" class="rsvp-form">
+        {% csrf_token %}
+        <div class="rsvp-choices">
+          <label class="rsvp-choice">
+            <input type="radio" name="response" value="sim" required>
+            <span>Sim 💚</span>
+          </label>
+          <label class="rsvp-choice">
+            <input type="radio" name="response" value="talvez">
+            <span>Talvez</span>
+          </label>
+          <label class="rsvp-choice">
+            <input type="radio" name="response" value="nao">
+            <span>Não poderei</span>
+          </label>
+        </div>
+        <div class="rsvp-details" id="rsvp-details" hidden>
+          <label class="field"><span>Nome</span>
+            <input type="text" name="name" autocomplete="name">
+          </label>
+          <label class="field"><span>Quantidade de acompanhantes</span>
+            <input type="number" name="companions" min="0" value="0">
+          </label>
+        </div>
+        <button type="submit" class="btn btn-primary btn-block">Enviar confirmação</button>
+      </form>
+    </div>
+    {% endif %}
+  </article>
+</section>
+
+{# Modal acesso — criar senha / entrar #}
+<div class="modal" id="modal-access" hidden>
+  <div class="modal-backdrop" data-close-access></div>
+  <div class="modal-panel invite-access-panel" role="dialog" aria-modal="true" aria-labelledby="access-title">
+    <h3 id="access-title">{% if next_url|slice:":10" == "/timeline/" %}Acesso à timeline{% else %}Acesso ao chá{% endif %}</h3>
+    <p class="invite-access-hint">Crie sua senha na primeira visita. Depois use a mesma para voltar.</p>
+    {% if rate_limited %}
+    <p class="form-error">Muitas tentativas. Aguarde alguns minutos e tente novamente.</p>
+    {% else %}
+    <div class="invite-access-tabs" role="tablist">
+      <button type="button" class="invite-access-tab is-active" data-access-tab="register" role="tab" aria-selected="true">
+        Criar senha
+      </button>
+      <button type="button" class="invite-access-tab" data-access-tab="login" role="tab" aria-selected="false">
+        Já tenho senha
+      </button>
+    </div>
+
+    <form method="post" action="{% url 'cha_acesso' %}" id="form-register" class="invite-access-form" data-access-panel="register">
+      {% csrf_token %}
+      <input type="hidden" name="mode" value="register">
+      <input type="hidden" name="next" value="{{ next_url }}">
+      <label class="field"><span>Seu nome</span>
+        <input type="text" name="name" required autocomplete="name" placeholder="Como prefere ser chamado(a)">
+      </label>
+      <label class="field"><span>Crie uma senha</span>
+        <input type="password" name="password" required minlength="4" autocomplete="new-password" placeholder="Mínimo 4 caracteres">
+      </label>
+      <label class="field"><span>Confirme a senha</span>
+        <input type="password" name="password_confirm" required minlength="4" autocomplete="new-password" placeholder="Repita a senha">
+      </label>
+      <div class="modal-actions">
+        <button type="button" class="btn" data-close-access>Cancelar</button>
+        <button type="submit" class="btn btn-primary">CRIAR E ENTRAR</button>
+      </div>
+    </form>
+
+    <form method="post" action="{% url 'cha_acesso' %}" id="form-login" class="invite-access-form" data-access-panel="login" hidden>
+      {% csrf_token %}
+      <input type="hidden" name="mode" value="login">
+      <input type="hidden" name="next" value="{{ next_url }}">
+      <label class="field"><span>Seu nome</span>
+        <input type="text" name="name" required autocomplete="username" placeholder="O mesmo nome da primeira vez">
+      </label>
+      <label class="field"><span>Sua senha</span>
+        <input type="password" name="password" required autocomplete="current-password" placeholder="Sua senha">
+      </label>
+      <div class="modal-actions">
+        <button type="button" class="btn" data-close-access>Cancelar</button>
+        <button type="submit" class="btn btn-primary">ENTRAR</button>
+      </div>
+    </form>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+(function () {
+  var modal = document.getElementById('modal-access');
+  var openBtn = document.getElementById('btn-open-access');
+  function openAccess() { if (modal) modal.hidden = false; }
+  function closeAccess() { if (modal) modal.hidden = true; }
+  if (openBtn) openBtn.addEventListener('click', openAccess);
+  document.querySelectorAll('[data-close-access]').forEach(function (el) {
+    el.addEventListener('click', closeAccess);
+  });
+  {% if not already_authorized and next_url|slice:":10" == "/timeline/" %}
+  openAccess();
+  {% endif %}
+
+  var tabs = document.querySelectorAll('[data-access-tab]');
+  var panels = document.querySelectorAll('[data-access-panel]');
+  tabs.forEach(function (tab) {
+    tab.addEventListener('click', function () {
+      var mode = tab.getAttribute('data-access-tab');
+      tabs.forEach(function (t) {
+        var on = t === tab;
+        t.classList.toggle('is-active', on);
+        t.setAttribute('aria-selected', on ? 'true' : 'false');
+      });
+      panels.forEach(function (p) {
+        p.hidden = p.getAttribute('data-access-panel') !== mode;
+      });
+    });
+  });
+
+  var details = document.getElementById('rsvp-details');
+  document.querySelectorAll('#form-rsvp [name=response]').forEach(function (r) {
+    r.addEventListener('change', function () {
+      if (!details) return;
+      var show = r.value === 'sim' || r.value === 'talvez';
+      details.hidden = !show;
+      var name = details.querySelector('[name=name]');
+      if (name) name.required = show;
+    });
+  });
+})();
+</script>
+{% endblock %}

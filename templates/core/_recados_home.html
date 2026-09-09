@@ -1,0 +1,16 @@
+<section class="recados-home" aria-labelledby="recados-home-title">
+  <h2 id="recados-home-title">💌 Recadinhos para mim</h2>
+  {% if recados_home %}
+  <div class="recados-grid recados-grid-home">
+    {% for recado in recados_home %}
+      {% include "mensagens/_recado_card.html" %}
+    {% endfor %}
+  </div>
+  {% else %}
+  <p class="recados-home-empty">Ainda estou esperando as primeiras mensagens com carinho.</p>
+  {% endif %}
+  <div class="recados-home-actions">
+    <a class="btn btn-primary" href="{% url 'recadinhos' %}">Ver todos os recadinhos</a>
+    <a class="btn" href="{% url 'recadinhos' %}#escrever">Deixar um recadinho</a>
+  </div>
+</section>

@@ -1,0 +1,17 @@
+{% if event.maps_embed_url %}
+<figure class="event-map">
+  <iframe
+    title="Mapa do local do chá de bebê"
+    src="{{ event.maps_embed_url }}"
+    loading="lazy"
+    referrerpolicy="no-referrer-when-downgrade"
+    allowfullscreen></iframe>
+  {% if event.maps_link_url %}
+  <figcaption>
+    <a href="{{ event.maps_link_url }}" target="_blank" rel="noopener noreferrer">
+      Abrir no Google Maps
+    </a>
+  </figcaption>
+  {% endif %}
+</figure>
+{% endif %}

@@ -1,0 +1,52 @@
+{% if event %}
+{% with cd=event.countdown %}
+<article class="cha-countdown{% if cd.ended %} is-ended{% endif %}"
+         id="cha-countdown"
+         data-starts-at="{{ cd.starts_at_iso }}"
+         data-ends-at="{{ cd.ends_at_iso }}"
+         data-event-date="{{ cd.event_date_iso }}"
+         data-tz="{{ cd.timezone }}"
+         data-phase="{{ cd.phase }}">
+  <span class="cha-countdown-deco" aria-hidden="true">
+    <span class="cha-deco cha-deco-star"></span>
+    <span class="cha-deco cha-deco-leaf"></span>
+    <span class="cha-deco cha-deco-heart"></span>
+    <span class="cha-deco cha-deco-cloud"></span>
+  </span>
+  <p class="cha-countdown-label">🧸 Chá do Joaquim</p>
+  <p class="cha-countdown-msg" data-role="live-msg">{{ cd.message }}</p>
+  <p class="cha-countdown-ended-title" data-role="ended-title"{% if not cd.ended %} hidden{% endif %}>
+    {{ cd.ended_title }}
+  </p>
+  <div class="cha-countdown-units" data-role="units"{% if cd.ended %} hidden{% endif %}>
+    <div class="cha-countdown-unit">
+      <span class="cha-countdown-num" data-unit="days">{{ cd.parts.days }}</span>
+      <span class="cha-countdown-unit-label">dias</span>
+    </div>
+    <div class="cha-countdown-unit">
+      <span class="cha-countdown-num" data-unit="hours">{{ cd.parts.hours|stringformat:"02d" }}</span>
+      <span class="cha-countdown-unit-label">horas</span>
+    </div>
+    <div class="cha-countdown-unit">
+      <span class="cha-countdown-num" data-unit="minutes">{{ cd.parts.minutes|stringformat:"02d" }}</span>
+      <span class="cha-countdown-unit-label">min</span>
+    </div>
+    <div class="cha-countdown-unit">
+      <span class="cha-countdown-num" data-unit="seconds">{{ cd.parts.seconds|stringformat:"02d" }}</span>
+      <span class="cha-countdown-unit-label">seg</span>
+    </div>
+  </div>
+  <p class="cha-countdown-date">{{ cd.date_label }}</p>
+  <a class="btn btn-primary cha-countdown-cta" href="{% url 'cha_bebe' %}">🧸 Ver convite</a>
+  {# Futuro: botão “Ver fotos do Chá →” quando o álbum existir. #}
+</article>
+<script type="application/json" id="cha-countdown-copy">{{ cd.messages_json|safe }}</script>
+<p class="sr-only" aria-live="polite" data-countdown-sr>
+  {% if cd.ended %}
+    {{ cd.ended_title }} {{ cd.message }}
+  {% else %}
+    Faltam {{ cd.parts.days }} dias para o Chá de Bebê do Joaquim.
+  {% endif %}
+</p>
+{% endwith %}
+{% endif %}

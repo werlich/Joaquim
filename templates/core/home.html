@@ -1,0 +1,47 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %}Início — Joaquim Werlich Galvão{% endblock %}
+{% block content %}
+<section class="hero hero-centered">
+  <figure class="hero-card">
+    <img src="{% static 'img/joaquim-hero.png' %}?v=20260826" alt="Joaquim Werlich Galvão — nosso maior amor ainda está a caminho" width="682" height="1024" loading="eager">
+  </figure>
+
+  <section class="home-journey" aria-label="Jornada do Joaquim">
+    {% include "core/_joaquimetro.html" %}
+    {% if joaquimetro_status and event %}
+    <span class="home-journey-link" aria-hidden="true"></span>
+    {% endif %}
+    {% include "core/_cha_countdown.html" %}
+  </section>
+</section>
+
+{% if event %}
+<section class="event-where" aria-labelledby="event-where-title">
+  <h2 id="event-where-title">Quando e onde</h2>
+  <dl class="event-meta">
+    <div><dt>Data</dt><dd>{{ event.event_date|date:"d/m/Y" }}</dd></div>
+    <div><dt>Horário</dt><dd>{{ event.time_label }}</dd></div>
+    <div class="event-meta-place">
+      <dt>Local</dt>
+      <dd>
+        <span class="event-street">{{ event.location }}</span>
+        {% if event.address %}<br>{{ event.address }}{% endif %}
+      </dd>
+    </div>
+  </dl>
+  {% include "cha/_event_map.html" %}
+</section>
+{% endif %}
+
+{% include "core/_recados_home.html" %}
+{% endblock %}
+{% block extra_js %}
+{% if joaquimetro_status %}
+<script src="{% static 'js/joaquimetro.js' %}?v=1"></script>
+{% endif %}
+{% if event %}
+<script src="{% static 'js/cha-countdown.js' %}?v=1"></script>
+{% endif %}
+<script src="{% static 'js/recadinhos.js' %}?v=1"></script>
+{% endblock %}

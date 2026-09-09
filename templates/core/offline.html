@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+{% block title %}Você está offline — Joaquim Werlich Galvão{% endblock %}
+{% block content %}
+<section class="page-head offline-page">
+  <p class="eyebrow">Joaquim</p>
+  <h1>Você está offline</h1>
+  <p class="prose">Não foi possível carregar esta página agora. Quando a conexão voltar, tente de novo.</p>
+  <div class="offline-actions">
+    <button type="button" class="btn btn-primary" id="offline-retry">Tentar novamente</button>
+    <a class="btn" href="{% url 'home' %}">Voltar ao início</a>
+  </div>
+</section>
+{% endblock %}
+{% block extra_js %}
+<script>
+  document.getElementById('offline-retry')?.addEventListener('click', function () {
+    window.location.reload();
+  });
+</script>
+{% endblock %}

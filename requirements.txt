@@ -1,0 +1,7 @@
+Django>=5.0,<6
+Pillow>=10.0
+python-dotenv>=1.0
+whitenoise>=6.0
+mysqlclient>=2.2
+gunicorn>=22.0
+reportlab>=4.0

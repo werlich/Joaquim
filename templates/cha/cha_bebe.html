@@ -1,0 +1,235 @@
+{% extends "base.html" %}
+{% block title %}Chá de Bebê — Joaquim Werlich Galvão{% endblock %}
+{% block content %}
+<section class="page-head">
+  <h1>{{ event.title|default:"Chá de Bebê" }}</h1>
+  {% if event %}
+  <dl class="event-meta">
+    <div><dt>Data</dt><dd>{{ event.event_date|date:"d/m/Y" }}</dd></div>
+    <div><dt>Horário</dt><dd>{{ event.time_label }}</dd></div>
+    <div class="event-meta-place"><dt>Local</dt><dd><span class="event-street">{{ event.location }}</span></dd></div>
+  </dl>
+  {% if event.address %}<p class="meta">{{ event.address }}</p>{% endif %}
+  {% include "cha/_event_map.html" %}
+  {% if event.info_text %}<div class="prose">{{ event.info_text|linebreaks }}</div>{% endif %}
+  {% else %}
+  <p>Em breve mais informações.</p>
+  {% endif %}
+</section>
+
+<section class="section" id="presentes"><span id="fraldas" hidden></span>
+  <h2>Lista de presentes</h2>
+  <div class="cards">
+    {% for item in gift_cards %}
+    <article class="card gift-card" data-gift-id="{{ item.gift.id }}"
+             data-qty-mode="{% if item.qty_mode %}1{% else %}0{% endif %}">
+      {% if item.gift.image %}
+      <img src="{{ item.gift.image.url }}" alt="{{ item.gift.name }}" class="card-img card-img-product">
+      {% endif %}
+      <div class="card-body">
+        <h3>{{ item.gift.name }}</h3>
+        {% if item.gift.category and item.gift.category.name != 'Geral' %}
+        <p class="tag">{{ item.gift.category.name }}</p>
+        {% endif %}
+        {% if item.gift.description %}<p>{{ item.gift.description }}</p>{% endif %}
+
+        {% if item.open_choice %}
+        <ul class="choosers js-choosers">
+          {% for r in item.choosers %}
+          <li>
+            <span class="chooser-name">{{ r.choice_label }}</span>
+            {% if r.message %}
+            <span class="chooser-note">{{ r.message.text }}</span>
+            {% endif %}
+          </li>
+          {% empty %}
+          <li class="choosers-empty">Nenhuma escolha ainda — o primeiro pode ser você 💚</li>
+          {% endfor %}
+        </ul>
+        {% if item.meta_reached %}
+        <p class="status meta-ok">META ATINGIDA 💚</p>
+        {% else %}
+        <button type="button" class="btn btn-primary btn-block js-open-gift"
+          data-gift-id="{{ item.gift.id }}"
+          data-gift-name="{{ item.gift.name }}"
+          data-qty-mode="1"
+          data-open-choice="1"
+          data-available="{{ item.gift.available_qty }}"
+          data-url="{% url 'reservar_presente' item.gift.id %}">
+          ESCOLHER PRESENTE
+        </button>
+        {% endif %}
+        {% elif item.qty_mode %}
+        <div class="diaper-bar gift-bar" role="progressbar"
+             aria-valuemin="0" aria-valuemax="100"
+             aria-valuenow="{{ item.gift.progress_pct }}"
+             aria-label="Progresso da meta de {{ item.gift.name }}">
+          <div class="diaper-bar-fill js-gift-bar-fill" style="width: {{ item.gift.progress_pct }}%;">
+            <span class="diaper-bar-pct js-gift-bar-pct">{{ item.gift.progress_pct }}%</span>
+          </div>
+        </div>
+        <ul class="stats">
+          <li><strong>Meta:</strong> {{ item.gift.meta_quantity }}</li>
+          <li><strong>Escolhidos:</strong> <span class="js-gift-chosen">{{ item.gift.chosen_qty }}</span></li>
+          <li><strong>Disponíveis:</strong> <span class="js-gift-available">{{ item.gift.available_qty }}</span></li>
+        </ul>
+
+        {% if item.choosers %}
+        <ul class="choosers js-choosers">
+          {% for r in item.choosers %}
+          <li>
+            <span class="chooser-name">{{ r.display_name }}{% if r.quantity > 1 %} · {{ r.quantity }}{% endif %}</span>
+            {% if r.message %}
+            <span class="chooser-note">{{ r.message.text }}</span>
+            {% endif %}
+          </li>
+          {% endfor %}
+        </ul>
+        {% else %}
+        <ul class="choosers js-choosers" hidden></ul>
+        {% endif %}
+        {% if item.meta_reached %}
+        <p class="status meta-ok">META ATINGIDA 💚</p>
+        {% else %}
+        <button type="button" class="btn btn-primary btn-block js-open-gift"
+          data-gift-id="{{ item.gift.id }}"
+          data-gift-name="{{ item.gift.name }}"
+          data-qty-mode="1"
+          data-available="{{ item.gift.available_qty }}"
+          data-url="{% url 'reservar_presente' item.gift.id %}">
+          ESCOLHER PRESENTE
+        </button>
+        {% endif %}
+        {% elif item.taken and item.reservation %}
+        <div class="gift-taken">
+          <p class="status taken">Já escolhido — {{ item.reservation.display_name }}</p>
+          {% if item.reservation.message %}
+          <p class="chooser-note">{{ item.reservation.message.text }}</p>
+          {% endif %}
+        </div>
+        {% else %}
+        <button type="button" class="btn btn-primary btn-block js-open-gift"
+          data-gift-id="{{ item.gift.id }}"
+          data-gift-name="{{ item.gift.name }}"
+          data-qty-mode="0"
+          data-available="1"
+          data-url="{% url 'reservar_presente' item.gift.id %}">
+          ESCOLHER PRESENTE
+        </button>
+        {% endif %}
+      </div>
+    </article>
+    {% endfor %}
+
+    {% if diapers %}
+    <div class="diaper-row">
+    {% for d in diapers %}
+    <article class="card diaper-card" data-size-id="{{ d.id }}" id="fraldas-{{ d.code|lower }}">
+      {% if d.image %}
+      <img src="{{ d.image.url }}" alt="{{ d.label }}" class="card-img card-img-product">
+      {% endif %}
+      <div class="card-body">
+        <h3>{{ d.label }}</h3>
+        <div class="diaper-bar" role="progressbar"
+             aria-valuemin="0" aria-valuemax="100"
+             aria-valuenow="{{ d.progress_pct }}"
+             aria-label="Progresso da meta de {{ d.label }}">
+          <div class="diaper-bar-fill js-diaper-bar-fill" style="width: {{ d.progress_pct }}%;">
+            <span class="diaper-bar-pct js-diaper-bar-pct">{{ d.progress_pct }}%</span>
+          </div>
+        </div>
+        <ul class="stats">
+          <li><strong>Meta:</strong> {{ d.meta_packs }} pacotes</li>
+          <li><strong>Escolhidos:</strong> <span class="js-chosen">{{ d.chosen_packs }}</span></li>
+          <li><strong>Disponíveis:</strong> <span class="js-available">{{ d.available_packs }}</span></li>
+        </ul>
+        {% if d.meta_reached %}
+        <p class="status meta-ok">META ATINGIDA 💚</p>
+        {% else %}
+        <button type="button" class="btn btn-primary btn-block js-open-diaper"
+          data-size-id="{{ d.id }}"
+          data-size-label="{{ d.label }}"
+          data-available="{{ d.available_packs }}"
+          data-url="{% url 'reservar_fralda' d.id %}">
+          ESCOLHER FRALDAS
+        </button>
+        {% endif %}
+      </div>
+    </article>
+    {% endfor %}
+    </div>
+    {% endif %}
+
+    {% if not gift_cards and not diapers %}
+    <p>Nenhum presente cadastrado ainda.</p>
+    {% endif %}
+  </div>
+</section>
+
+{# Modal presente #}
+<div class="modal" id="modal-gift" hidden>
+  <div class="modal-backdrop" data-close></div>
+  <div class="modal-panel" role="dialog" aria-modal="true">
+    <h3>Confirmar presente</h3>
+    <p class="modal-focus">Você está escolhendo: <strong id="gift-confirm-name"></strong></p>
+    <form id="form-gift">
+      {% csrf_token %}
+      <div id="gift-qty-wrap" hidden>
+        <label class="field"><span>Quantidade</span>
+          <input type="number" name="quantity" id="gift-quantity" min="1" value="1">
+        </label>
+        <p class="hint">Disponíveis: <span id="gift-available"></span></p>
+      </div>
+      <div id="gift-item-wrap" hidden>
+        <label class="field"><span>Qual presente você vai levar?</span>
+          <input type="text" name="item_name" id="gift-item-name" maxlength="160" placeholder="Ex.: Móbile, livro, brinquedo…">
+        </label>
+      </div>
+      <label class="field"><span>Seu nome</span><input type="text" name="guest_name" autocomplete="name"></label>
+      <label class="check"><input type="checkbox" name="is_anonymous" value="1"> Prefiro aparecer como Anônimo</label>
+      <label class="field"><span>Mensagem para o Joaquim (opcional)</span>
+        <textarea name="message" id="gift-message" rows="3" maxlength="500"></textarea>
+        {% include "mensagens/_emoji_picker.html" with for_id="gift-message" compact=1 %}
+      </label>
+      <div class="modal-actions">
+        <button type="button" class="btn" data-close>Cancelar</button>
+        <button type="submit" class="btn btn-primary">Confirmar</button>
+      </div>
+      <p class="form-error" id="gift-error" hidden></p>
+    </form>
+  </div>
+</div>
+
+{# Modal fralda #}
+<div class="modal" id="modal-diaper" hidden>
+  <div class="modal-backdrop" data-close></div>
+  <div class="modal-panel" role="dialog" aria-modal="true">
+    <h3>Confirmar fraldas</h3>
+    <p class="modal-focus">Tamanho: <strong id="diaper-confirm-label"></strong></p>
+    <form id="form-diaper">
+      {% csrf_token %}
+      <label class="field"><span>Quantidade de pacotes</span>
+        <input type="number" name="quantity" min="1" value="1" required>
+      </label>
+      <p class="hint">Disponíveis: <span id="diaper-available"></span></p>
+      <label class="field"><span>Seu nome</span><input type="text" name="guest_name" autocomplete="name"></label>
+      <label class="check"><input type="checkbox" name="is_anonymous" value="1"> Prefiro aparecer como Anônimo</label>
+      <label class="field"><span>Mensagem para o Joaquim (opcional)</span>
+        <textarea name="message" id="diaper-message" rows="3" maxlength="500"></textarea>
+        {% include "mensagens/_emoji_picker.html" with for_id="diaper-message" compact=1 %}
+      </label>
+      <div class="modal-actions">
+        <button type="button" class="btn" data-close>Cancelar</button>
+        <button type="submit" class="btn btn-primary">Confirmar</button>
+      </div>
+      <p class="form-error" id="diaper-error" hidden></p>
+    </form>
+  </div>
+</div>
+
+<div class="lightbox" id="lightbox" hidden>
+  <button type="button" class="lightbox-close" data-close-lb aria-label="Fechar">×</button>
+  <img src="" alt="" id="lightbox-img">
+  <p id="lightbox-caption"></p>
+</div>
+{% endblock %}

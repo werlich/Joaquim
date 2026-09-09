@@ -1,0 +1,121 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %}A Jornada do Joaquim — Joaquim Werlich Galvão{% endblock %}
+{% block content %}
+<article class="journey" aria-labelledby="journey-title">
+  <header class="journey-hero" id="journey-top">
+    <p class="journey-kicker">Álbum digital</p>
+    <h1 id="journey-title">A Jornada do Joaquim <span aria-hidden="true">💚</span></h1>
+    <p class="journey-sub">Minha história começou antes mesmo de eu nascer...</p>
+    {% if moments %}
+    <p class="journey-stats">{{ count_label }}</p>
+    {% if range_label %}<p class="journey-range">{{ range_label }}</p>{% endif %}
+    {% endif %}
+  </header>
+
+  {% if chapters %}
+  <nav class="journey-nav" aria-label="Capítulos da história">
+    {% for c in chapters %}
+    <a href="{{ c.href }}">{{ c.label }}</a>
+    {% endfor %}
+  </nav>
+  {% endif %}
+
+  {% if moments %}
+  <div class="journey-track">
+    <div class="journey-line" aria-hidden="true">
+      <div class="journey-line-fill"></div>
+    </div>
+
+    <ol class="journey-list">
+      {% for m in moments %}
+      {% if m.show_chapter %}
+      <li class="journey-chapter" id="capitulo-{{ m.chapter }}">
+        <p class="journey-chapter-mark" aria-hidden="true">{{ m.chapter_mark }}</p>
+        <h2>{{ m.chapter_title }}</h2>
+      </li>
+      {% endif %}
+      <li
+        class="journey-item is-{{ m.side }}{% if m.featured %} is-featured{% endif %}{% if m.is_birth %} is-birth{% endif %}"
+        {% if m.familia_anchor %}id="capitulo-familia"{% endif %}
+        data-chapter="{{ m.chapter }}"
+      >
+        <div class="journey-dot" aria-hidden="true"></div>
+        <article class="journey-card">
+          <div class="journey-card-head">
+            <time class="journey-badge" datetime="{{ m.event_date|date:'Y-m-d' }}">{{ m.date_badge }}</time>
+            <span class="journey-icon" title="{{ m.kind }}">{% include "core/_journey_icon.html" with kind=m.kind %}</span>
+          </div>
+          {% if m.display_title %}
+          <h3>{{ m.display_title }}</h3>
+          {% endif %}
+          {% if m.display_body %}
+          <div class="prose">{{ m.display_body|linebreaks }}</div>
+          {% endif %}
+          {% with photos=m.photos %}
+          {% if photos %}
+          <div class="journey-gallery journey-gallery--{{ m.fit }}">
+            <button type="button" class="journey-hero-photo js-lightbox"
+              data-src="{{ photos.0.url }}"
+              data-gallery="moment-{{ m.pk }}"
+              data-caption="{{ m.display_title }}">
+              <img src="{{ photos.0.url }}" alt="{{ m.display_title }}" loading="lazy" decoding="async">
+            </button>
+            {% if photos|length > 1 %}
+            <div class="journey-thumbs">
+              {% for img in photos %}
+                {% if not forloop.first %}
+                  {% if forloop.counter0 < 4 %}
+                  <button type="button" class="journey-thumb js-lightbox"
+                    data-src="{{ img.url }}"
+                    data-gallery="moment-{{ m.pk }}"
+                    data-caption="{{ m.display_title }}">
+                    <img src="{{ img.url }}" alt="{{ m.display_title }}" loading="lazy" decoding="async">
+                    {% if forloop.counter0 == 3 and m.extra_photos %}
+                    <span class="journey-more">+{{ m.extra_photos }}</span>
+                    {% endif %}
+                  </button>
+                  {% else %}
+                  <button type="button" class="js-lightbox journey-thumb-hidden"
+                    data-src="{{ img.url }}"
+                    data-gallery="moment-{{ m.pk }}"
+                    data-caption="{{ m.display_title }}"
+                    tabindex="-1"
+                    aria-hidden="true"></button>
+                  {% endif %}
+                {% endif %}
+              {% endfor %}
+            </div>
+            {% endif %}
+          </div>
+          {% endif %}
+          {% endwith %}
+        </article>
+      </li>
+      {% endfor %}
+    </ol>
+
+    <div class="journey-end">
+      <p class="journey-continue">…e minha história continua <span aria-hidden="true">💚</span></p>
+      <div class="journey-dots" aria-hidden="true"></div>
+      <p class="journey-next">Próximo capítulo...</p>
+    </div>
+  </div>
+  {% else %}
+  <p class="timeline-empty">A timeline ainda está sendo escrita. Em breve os primeiros momentos.</p>
+  {% endif %}
+</article>
+
+<div class="lightbox" id="lightbox" hidden role="dialog" aria-modal="true" aria-label="Foto em destaque">
+  <button type="button" class="lightbox-close" data-close-lb aria-label="Fechar">×</button>
+  <button type="button" class="lightbox-nav lightbox-prev" data-lb-prev hidden aria-label="Foto anterior">‹</button>
+  <button type="button" class="lightbox-nav lightbox-next" data-lb-next hidden aria-label="Próxima foto">›</button>
+  <figure class="lightbox-figure">
+    <img src="" alt="" id="lightbox-img">
+    <figcaption id="lightbox-caption"></figcaption>
+  </figure>
+</div>
+{% endblock %}
+{% block extra_js %}
+<script src="{% static 'js/timeline.js' %}?v=journey1"></script>
+{% endblock %}

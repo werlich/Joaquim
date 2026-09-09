@@ -1,0 +1,22 @@
+{% if not can_like %}
+<span class="chooser-like is-locked" title="Entre com seu nome e senha para curtir">
+  <span aria-hidden="true">🤍</span>
+  <span class="chooser-like-count">{{ res.likes }}</span>
+</span>
+{% elif res.id in liked_ids %}
+<button type="button" class="chooser-like js-like is-liked" aria-pressed="true"
+        data-url="{% url 'curtir_escolha' res.id %}"
+        title="Curtiram: {{ res.likers_label }}"
+        aria-label="Descurtir a escolha de {{ res.display_name }}">
+  <span aria-hidden="true">💚</span>
+  <span class="chooser-like-count js-like-count">{{ res.likes }}</span>
+</button>
+{% else %}
+<button type="button" class="chooser-like js-like" aria-pressed="false"
+        data-url="{% url 'curtir_escolha' res.id %}"
+        {% if res.likes %}title="Curtiram: {{ res.likers_label }}"{% endif %}
+        aria-label="Curtir a escolha de {{ res.display_name }}">
+  <span aria-hidden="true">🤍</span>
+  <span class="chooser-like-count js-like-count">{{ res.likes }}</span>
+</button>
+{% endif %}

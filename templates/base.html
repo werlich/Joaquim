@@ -1,0 +1,90 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  {% if ga_measurement_id %}
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id={{ ga_measurement_id }}"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', '{{ ga_measurement_id }}');
+  </script>
+  {% endif %}
+  <title>{% block title %}Joaquim Werlich Galvão{% endblock %}</title>
+  <link rel="manifest" href="{% url 'webmanifest' %}">
+  <meta name="theme-color" content="#7AAB97">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-title" content="Joaquim">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <link rel="apple-touch-icon" href="{% static 'img/pwa/apple-touch-icon.png' %}">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600&family=Great+Vibes&family=Source+Sans+3:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{% static 'css/site.css' %}?v=journey17">
+  {% block extra_head %}{% endblock %}
+</head>
+<body class="theme-baby">
+  <header class="site-header">
+    <div class="wrap header-inner">
+      <a class="brand" href="{% url 'home' %}">Bem-vindo ao meu blog</a>
+      <button type="button" class="nav-toggle" id="nav-toggle" aria-label="Menu">☰</button>
+      <nav class="site-nav" id="site-nav">
+        {% for s in nav_sections %}
+          {% if s.url_name %}
+          <a href="{% url s.url_name %}">{{ s.title }}</a>
+          {% else %}
+          <span class="nav-disabled">{{ s.title }}</span>
+          {% endif %}
+        {% empty %}
+          <a href="{% url 'home' %}">Início</a>
+          <a href="{% url 'cha_bebe' %}">Chá de Bebê</a>
+          <a href="{% url 'recadinhos' %}">💌 Recadinhos</a>
+        {% endfor %}
+      </nav>
+    </div>
+  </header>
+  <main class="wrap">
+    {% if messages %}
+    <ul class="flash">
+      {% for message in messages %}
+      <li class="{{ message.tags }}">{{ message }}</li>
+      {% endfor %}
+    </ul>
+    {% endif %}
+    {% block content %}{% endblock %}
+  </main>
+  <footer class="site-footer">
+    <div class="wrap footer-inner">
+      <div class="footer-credit">Criado pelo vovô: <strong>Claudio Werlich</strong></div>
+      <div class="pwa-install">
+        <button type="button" class="pwa-install-btn" id="pwa-install-btn" hidden>Instalar app</button>
+        <p class="pwa-ios-hint" id="pwa-ios-hint" hidden>Compartilhar &gt; Adicionar à Tela de Início</p>
+        <button type="button" class="pwa-install-dismiss" id="pwa-install-dismiss" hidden aria-label="Dispensar">Agora não</button>
+      </div>
+    </div>
+  </footer>
+  <div class="pwa-toast" id="pwa-update-toast" hidden>
+    <span>Uma nova versão está disponível</span>
+    <button type="button" class="btn btn-primary" data-pwa-update>Atualizar</button>
+  </div>
+  <div class="pwa-toast pwa-toast-news" id="pwa-news-toast" hidden
+       data-news-revision="{{ site_news.revision }}"
+       data-news-timeline="{{ site_news.timeline_id }}"
+       data-news-recado="{{ site_news.recado_id }}">
+    <span>Tem novidade no blog do Joaquim</span>
+    <span class="pwa-news-actions">
+      <button type="button" class="btn" data-pwa-news-dismiss>Agora não</button>
+      <a class="btn btn-primary" href="/" data-pwa-news-open>Ver agora</a>
+    </span>
+  </div>
+  <div class="pwa-toast pwa-toast-net" id="pwa-net-toast" hidden></div>
+  <script src="{% static 'js/site.js' %}?v=lb5"></script>
+  <script src="{% static 'js/pwa.js' %}?v=2"></script>
+  {% block extra_js %}{% endblock %}
+</body>
+</html>

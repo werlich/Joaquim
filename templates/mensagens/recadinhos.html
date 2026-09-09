@@ -1,0 +1,99 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %}Recadinhos para o Joaquim{% endblock %}
+{% block content %}
+<section class="recados-page">
+  <header class="recados-hero">
+    <p class="recados-kicker">Livro de visitas</p>
+    <h1>💌 Recadinhos para o Joaquim</h1>
+    <p class="recados-lead">Mensagens de pessoas especiais que já fazem parte da minha história.</p>
+    <p class="recados-note">Um dia vou poder voltar aqui e descobrir quantas pessoas já me esperavam com carinho. 💚</p>
+  </header>
+
+  {% if enviado %}
+  <div class="recado-thanks" role="status">
+    <p class="recado-thanks-title">💚 Recadinho recebido!</p>
+    <p>Obrigado por deixar uma mensagem para o Joaquim. Ela ficará guardadinha e aparecerá aqui depois da aprovação da família.</p>
+  </div>
+  {% endif %}
+
+  <section class="recado-form-card" id="escrever" aria-labelledby="recado-form-title">
+    <h2 id="recado-form-title">💌 Deixe um recadinho para o Joaquim</h2>
+    <p class="recado-form-lead">Escreva uma mensagem para o Joaquim guardar com carinho. 💚</p>
+    <form method="post" action="{% url 'recadinhos' %}#escrever" class="recado-form" novalidate>
+      {% csrf_token %}
+      <label class="hp-field" aria-hidden="true">
+        <span>Website</span>
+        {{ form.website }}
+      </label>
+      <label class="field">
+        <span>{{ form.nome.label }}</span>
+        {{ form.nome }}
+        {{ form.nome.errors }}
+      </label>
+      <label class="field">
+        <span>{{ form.relacao.label }}</span>
+        {{ form.relacao }}
+        {{ form.relacao.errors }}
+      </label>
+      <label class="field">
+        <span>{{ form.mensagem.label }}</span>
+        {{ form.mensagem }}
+        {{ form.mensagem.errors }}
+        {% include "mensagens/_emoji_picker.html" with for_id="id_mensagem" %}
+        <span class="recado-count"><span data-recado-count>0</span> / 1000</span>
+      </label>
+      <label class="field">
+        <span>{{ form.email.label }}</span>
+        {{ form.email }}
+        {{ form.email.errors }}
+      </label>
+      <button type="submit" class="btn btn-primary recado-submit">💚 Enviar meu recadinho</button>
+    </form>
+  </section>
+
+  <section class="recados-wall" aria-labelledby="recados-wall-title">
+    <h2 id="recados-wall-title" class="sr-only">Recados aprovados</h2>
+    {% if recados %}
+    <div class="recados-grid">
+      {% for recado in recados %}
+        {% include "mensagens/_recado_card.html" %}
+      {% endfor %}
+    </div>
+    {% if page_obj.has_other_pages %}
+    <div class="recados-pager">
+      {% if page_obj.has_next %}
+      <a class="btn btn-primary recados-more" href="?page={{ page_obj.next_page_number }}#recados-wall-title">
+        Ver mais recadinhos
+      </a>
+      {% endif %}
+      <nav class="recados-pages" aria-label="Páginas de recadinhos">
+        {% if page_obj.has_previous %}
+        <a href="?page={{ page_obj.previous_page_number }}#recados-wall-title">Anterior</a>
+        {% endif %}
+        {% for num in page_obj.paginator.page_range %}
+          {% if num == page_obj.number %}
+          <span class="is-current" aria-current="page">{{ num }}</span>
+          {% else %}
+          <a href="?page={{ num }}#recados-wall-title">{{ num }}</a>
+          {% endif %}
+        {% endfor %}
+        {% if page_obj.has_next %}
+        <a href="?page={{ page_obj.next_page_number }}#recados-wall-title">Próxima</a>
+        {% endif %}
+      </nav>
+    </div>
+    {% endif %}
+    {% elif not enviado %}
+    <div class="recados-empty">
+      <p class="recados-empty-title">💌 Seja o primeiro a deixar uma mensagem</p>
+      <p>Um dia o Joaquim poderá voltar aqui e ler todo o carinho que recebeu antes mesmo de crescer.</p>
+      <a class="btn btn-primary" href="#escrever">Escrever um recadinho</a>
+    </div>
+    {% endif %}
+  </section>
+</section>
+{% endblock %}
+{% block extra_js %}
+<script src="{% static 'js/recadinhos.js' %}?v=2"></script>
+{% endblock %}

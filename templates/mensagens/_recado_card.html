@@ -1,0 +1,8 @@
+<article class="recado-card recado-card--{{ recado.relacao|default:'outro' }}">
+  <p class="recado-card-mark" aria-hidden="true">{{ recado.relacao_icon }}</p>
+  <blockquote class="recado-card-quote">{{ recado.mensagem }}</blockquote>
+  <p class="recado-card-author">— {{ recado.nome }}</p>
+  <p class="recado-card-meta">
+    {% if recado.relacao_label %}{{ recado.relacao_label }} · {% endif %}{{ recado.created_at|date:"d/m/Y" }}
+  </p>
+</article>
