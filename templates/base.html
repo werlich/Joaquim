@@ -25,7 +25,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600&family=Great+Vibes&family=Source+Sans+3:wght@400;500;600&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="{% static 'css/site.css' %}?v=journey17">
+  <link rel="stylesheet" href="{% static 'css/site.css' %}?v=journey20">
   {% block extra_head %}{% endblock %}
 </head>
 <body class="theme-baby">
@@ -76,15 +76,27 @@
        data-news-revision="{{ site_news.revision }}"
        data-news-timeline="{{ site_news.timeline_id }}"
        data-news-recado="{{ site_news.recado_id }}">
-    <span>Tem novidade no blog do Joaquim</span>
+    <span data-pwa-news-text>Tem novidade no blog do Joaquim</span>
     <span class="pwa-news-actions">
       <button type="button" class="btn" data-pwa-news-dismiss>Agora não</button>
-      <a class="btn btn-primary" href="/" data-pwa-news-open>Ver agora</a>
+      <a class="btn btn-primary" href="/recadinhos/" data-pwa-news-open>Ver agora</a>
     </span>
   </div>
+  {% if request.user.is_staff %}
+  <div class="pwa-toast pwa-toast-news" id="staff-recado-toast" hidden
+       data-pending="{{ site_news.pending_count }}">
+    <span data-staff-recado-text>Há recadinho aguardando aprovação</span>
+    <span class="pwa-news-actions">
+      <button type="button" class="btn" data-staff-recado-dismiss>Agora não</button>
+      <a class="btn btn-primary" href="{% url 'admin:mensagens_recado_changelist' %}" data-staff-recado-open>Ver recados</a>
+    </span>
+  </div>
+  {% endif %}
   <div class="pwa-toast pwa-toast-net" id="pwa-net-toast" hidden></div>
-  <script src="{% static 'js/site.js' %}?v=lb5"></script>
-  <script src="{% static 'js/pwa.js' %}?v=2"></script>
+  <script src="{% static 'js/site.js' %}?v=lb6"></script>
+  <script src="{% static 'js/pwa.js' %}?v=3"></script>
+  {% if request.user.is_staff %}<script>window.JOAQUIM_STAFF = true;</script>{% endif %}
+  <script src="{% static 'js/recado-avisos.js' %}?v=1"></script>
   {% block extra_js %}{% endblock %}
 </body>
 </html>

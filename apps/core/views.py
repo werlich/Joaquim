@@ -1,6 +1,7 @@
 import json
 
 from django.contrib.staticfiles.storage import staticfiles_storage
+from django.core.paginator import Paginator
 from django.http import HttpResponse, JsonResponse
 from django.shortcuts import render
 from django.template.loader import render_to_string
@@ -9,8 +10,11 @@ from django.views.decorators.http import require_safe
 from apps.cha.access import cha_access_required
 from apps.cha.models import BabyShowerEvent
 from apps.core.models import Joaquimetro, TimelineEntry
+from apps.core.news import news_for_request
 from apps.core.pwa import PWA_BACKGROUND_COLOR, PWA_CACHE_VERSION, PWA_THEME_COLOR
 from apps.core.timeline_meta import annotate
+from apps.core.updates import LIMIT as UPDATES_PAGE_SIZE
+from apps.core.updates import latest_blog_updates
 from apps.mensagens.models import Recado
 
 
@@ -18,11 +22,16 @@ def home(request):
     event = BabyShowerEvent.current()
     joaquimetro = Joaquimetro.current()
     joaquimetro_status = joaquimetro.status() if joaquimetro else None
+    updates_page = Paginator(latest_blog_updates(), UPDATES_PAGE_SIZE).get_page(
+        request.GET.get('atualizacoes')
+    )
     return render(request, 'core/home.html', {
         'event': event,
         'joaquimetro': joaquimetro,
         'joaquimetro_status': joaquimetro_status,
         'recados_home': Recado.objects.approved()[:3],
+        'blog_updates': updates_page.object_list,
+        'blog_updates_page': updates_page,
     })
 
 
@@ -50,6 +59,13 @@ def _pwa_icon(name, size, purpose):
 
 def _no_cache(response):
     response['Cache-Control'] = 'no-cache'
+    return response
+
+
+@require_safe
+def novidades(request):
+    response = JsonResponse(news_for_request(request))
+    response['Cache-Control'] = 'no-store'
     return response
 
 

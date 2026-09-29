@@ -1,5 +1,6 @@
 from datetime import date, time
 
+from django.contrib.auth.models import User
 from django.core.cache import cache
 from django.test import Client, TestCase, override_settings
 from django.urls import reverse
@@ -196,3 +197,42 @@ class InviteAccessTests(TestCase):
             HTTP_X_REQUESTED_WITH='XMLHttpRequest',
         )
         self.assertEqual(res.status_code, 403)
+
+
+class ChaRsvpAdminFormTests(TestCase):
+    def setUp(self):
+        self.user = User.objects.create_superuser('admin', 'a@b.c', 'secret')
+        self.client = Client()
+        self.client.force_login(self.user)
+
+    def test_anonimo_nao_abre_formulario(self):
+        anon = Client()
+        res = anon.get(reverse('admin:cha_charsvp_formulario'))
+        self.assertEqual(res.status_code, 302)
+
+    def test_botao_e_formulario_na_listagem(self):
+        page = self.client.get(reverse('admin:cha_charsvp_changelist'))
+        self.assertEqual(page.status_code, 200)
+        self.assertContains(page, 'Formulário de presença')
+        self.assertContains(page, reverse('admin:cha_charsvp_formulario'))
+        self.assertContains(page, 'Total de participantes:')
+
+    def test_formulario_salva_confirmacao(self):
+        form_url = reverse('admin:cha_charsvp_formulario')
+        page = self.client.get(form_url)
+        self.assertEqual(page.status_code, 200)
+        self.assertContains(page, 'Registrar nova confirmação')
+        res = self.client.post(form_url, {
+            'response': 'sim',
+            'name': 'Tia Ana',
+            'companions': 1,
+        })
+        self.assertRedirects(res, form_url)
+        rsvp = ChaRsvp.objects.get()
+        self.assertEqual(rsvp.name, 'Tia Ana')
+        self.assertEqual(rsvp.response, 'sim')
+        self.assertEqual(rsvp.companions, 1)
+        lista = self.client.get(form_url)
+        self.assertContains(lista, 'Tia Ana')
+        self.assertContains(lista, 'Total de participantes: 2')
+        self.assertContains(lista, 'Pessoas (sim): 2')

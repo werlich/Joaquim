@@ -192,5 +192,6 @@ class RecadoAdminTests(TestCase):
 
     def test_listagem_mostra_pendentes(self):
         res = self.client.get(reverse('admin:mensagens_recado_changelist'))
+        self.assertEqual(res.status_code, 200)
         self.assertContains(res, 'aguardando aprovação')
         self.assertContains(res, 'Tia Ana')

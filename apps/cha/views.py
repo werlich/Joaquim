@@ -21,6 +21,7 @@ from .models import (
     BabyShowerEvent,
     ChaGuest,
     ChaRsvp,
+    DiaperPledge,
     DiaperSize,
     Gift,
     GiftReservation,
@@ -68,6 +69,20 @@ def _gift_cards():
             'meta_reached': g.meta_reached() if qty else (not g.is_available),
         })
     return cards
+
+
+def _diapers():
+    return list(
+        DiaperSize.objects.prefetch_related(
+            models.Prefetch(
+                'pledges',
+                queryset=DiaperPledge.objects.filter(cancelled_at__isnull=True)
+                .select_related('message')
+                .order_by('created_at', 'id'),
+                to_attr='choosers',
+            )
+        )
+    )
 
 
 def _current_guest(request):
@@ -191,7 +206,7 @@ def cha_presentes(request):
     return render(request, 'cha/presentes.html', {
         'event': event,
         'gift_cards': _gift_cards(),
-        'diapers': list(DiaperSize.objects.all()),
+        'diapers': _diapers(),
         'liked_ids': _liked_ids(guest),
         'can_like': guest is not None,
     })
@@ -291,6 +306,9 @@ def reservar_fralda_view(request, size_id):
         'progress': size.progress_pct(),
         'meta_reached': size.meta_reached(),
         'guest': pledge.display_name,
+        'chooser': pledge.display_name,
+        'quantity': pledge.quantity,
+        'message': (pledge.message.text if pledge.message else ''),
     })
 
 

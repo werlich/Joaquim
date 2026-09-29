@@ -143,6 +143,16 @@
           <li><strong>Escolhidos:</strong> <span class="js-chosen">{{ d.chosen_packs }}</span></li>
           <li><strong>Disponíveis:</strong> <span class="js-available">{{ d.available_packs }}</span></li>
         </ul>
+        <ul class="choosers js-choosers"{% if not d.choosers %} hidden{% endif %}>
+          {% for p in d.choosers %}
+          <li>
+            <span class="chooser-name">{{ p.display_name }}{% if p.quantity > 1 %} · {{ p.quantity }} pacotes{% endif %}</span>
+            {% if p.message %}
+            <span class="chooser-note">{{ p.message.text }}</span>
+            {% endif %}
+          </li>
+          {% endfor %}
+        </ul>
         {% if d.meta_reached %}
         <p class="status meta-ok">META ATINGIDA 💚</p>
         {% else %}

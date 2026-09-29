@@ -1,7 +1,7 @@
 from django.conf import settings
 
 from .models import SiteSection
-from .news import latest_news
+from .news import news_for_request
 
 
 def site_nav(request):
@@ -18,4 +18,4 @@ def google_analytics(request):
 
 
 def site_news(request):
-    return {'site_news': latest_news()}
+    return {'site_news': news_for_request(request)}

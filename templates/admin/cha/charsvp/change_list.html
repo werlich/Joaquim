@@ -1,0 +1,18 @@
+{% extends "admin/change_list.html" %}
+
+{% block object-tools-items %}
+  <li>
+    <a href="{% url 'admin:cha_charsvp_formulario' %}" class="addlink">Formulário de presença</a>
+  </li>
+  {{ block.super }}
+{% endblock %}
+
+{% block content %}
+<div class="module" style="margin:0 0 1rem;padding:.85rem 1rem;font-size:1.05rem">
+  <strong>Total de participantes:</strong> {{ total_participantes }}
+  <span style="margin-left:1rem;font-weight:400;color:var(--body-quiet-color, #666)">
+    (quem confirmou Sim + acompanhantes)
+  </span>
+</div>
+{{ block.super }}
+{% endblock %}

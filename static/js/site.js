@@ -293,6 +293,24 @@
         } else if (openBtn) {
           openBtn.dataset.available = data.available;
         }
+        var choosers = card.querySelector('.js-choosers');
+        if (choosers && data.chooser) {
+          choosers.hidden = false;
+          var li = document.createElement('li');
+          var name = document.createElement('span');
+          name.className = 'chooser-name';
+          name.textContent = data.quantity > 1
+            ? data.chooser + ' · ' + data.quantity + ' pacotes'
+            : data.chooser;
+          li.appendChild(name);
+          if (data.message) {
+            var note = document.createElement('span');
+            note.className = 'chooser-note';
+            note.textContent = data.message;
+            li.appendChild(note);
+          }
+          choosers.appendChild(li);
+        }
       }
       closeModals();
     });

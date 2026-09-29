@@ -1,7 +1,10 @@
 from django import forms
 from django.contrib import admin, messages
-from django.utils import timezone
+from django.db.models import Count, Q, Sum
+from django.shortcuts import redirect, render
+from django.urls import path
 
+from .forms import ChaRsvpForm
 from .models import (
     BabyShowerEvent, ChaGuest, ChaRsvp, DiaperPledge, DiaperSize, GalleryPhoto,
     Gift, GiftCategory, GiftReservation, ReservationLike,
@@ -63,6 +66,73 @@ class ChaRsvpAdmin(admin.ModelAdmin):
     list_filter = ('response',)
     readonly_fields = ('created_at',)
     search_fields = ('name',)
+    change_list_template = 'admin/cha/charsvp/change_list.html'
+
+    def _resumo_presenca(self):
+        totais = ChaRsvp.objects.aggregate(
+            total=Count('id'),
+            sim=Count('id', filter=Q(response=ChaRsvp.RESPONSE_SIM)),
+            talvez=Count('id', filter=Q(response=ChaRsvp.RESPONSE_TALVEZ)),
+            nao=Count('id', filter=Q(response=ChaRsvp.RESPONSE_NAO)),
+            acompanhantes_sim=Sum(
+                'companions',
+                filter=Q(response=ChaRsvp.RESPONSE_SIM),
+            ),
+            acompanhantes_talvez=Sum(
+                'companions',
+                filter=Q(response=ChaRsvp.RESPONSE_TALVEZ),
+            ),
+        )
+        pessoas_sim = (totais['sim'] or 0) + (totais['acompanhantes_sim'] or 0)
+        pessoas_talvez = (totais['talvez'] or 0) + (totais['acompanhantes_talvez'] or 0)
+        return {
+            'totais': totais,
+            'pessoas_esperadas': pessoas_sim,
+            'pessoas_talvez': pessoas_talvez,
+            'total_participantes': pessoas_sim,
+        }
+
+    def get_urls(self):
+        info = (self.opts.app_label, self.opts.model_name)
+        custom = [
+            path(
+                'formulario/',
+                self.admin_site.admin_view(self.formulario_view),
+                name='%s_%s_formulario' % info,
+            ),
+        ]
+        return custom + super().get_urls()
+
+    def changelist_view(self, request, extra_context=None):
+        extra_context = extra_context or {}
+        extra_context.update(self._resumo_presenca())
+        return super().changelist_view(request, extra_context=extra_context)
+
+    def formulario_view(self, request):
+        form = ChaRsvpForm()
+        if request.method == 'POST':
+            form = ChaRsvpForm(request.POST)
+            if form.is_valid():
+                ChaRsvp.objects.create(
+                    name=(form.cleaned_data.get('name') or '').strip(),
+                    response=form.cleaned_data['response'],
+                    companions=form.cleaned_data.get('companions') or 0,
+                )
+                self.message_user(
+                    request,
+                    'Confirmação de presença registrada.',
+                    messages.SUCCESS,
+                )
+                return redirect('admin:cha_charsvp_formulario')
+        context = {
+            **self.admin_site.each_context(request),
+            **self._resumo_presenca(),
+            'opts': self.opts,
+            'form': form,
+            'confirmacoes': list(ChaRsvp.objects.order_by('name', 'id')),
+            'title': 'Formulário de presença',
+        }
+        return render(request, 'admin/cha/charsvp/formulario.html', context)
 
 
 @admin.register(GiftCategory)

@@ -24,7 +24,6 @@ class RecadoAdmin(admin.ModelAdmin):
     readonly_fields = ('created_at',)
     fields = ('nome', 'relacao', 'email', 'mensagem', 'status', 'created_at')
     actions = ('aprovar', 'rejeitar', 'voltar_pendente')
-    date_hierarchy = 'created_at'
     list_per_page = 50
 
     def get_queryset(self, request):

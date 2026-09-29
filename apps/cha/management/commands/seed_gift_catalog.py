@@ -11,23 +11,24 @@ CATALOG = [
     ('Lixeira anti odor', 1, 14),
     ('Lençol para berço portátil', 3, 15),
     ('Cobertor mais grosso', 1, 16),
-    ('Mantas', 3, 17),
-    ('Cueiros', 10, 18),
-    ('Fraldas de pano de diversos tamanhos', 20, 19),
-    ('Toalha de banho grande', 1, 20),
-    ('Trocador portátil', 1, 21),
-    ('Sling', 1, 22),
-    ('Almofada amamentação', 1, 23),
-    ('Kit saquinhos maternidade', 1, 24),
-    ('Ruído branco', 1, 25),
-    ('Sabonete líquido', 3, 26),
-    ('Colônia para bebê', 1, 27),
-    ('Creme para bebê', 1, 28),
-    ('Óleo para bebê', 1, 29),
-    ('Lenço umedecido', 5, 30),
-    ('Termômetro Infravermelho', 1, 31),
-    ('Limpador nasal', 1, 32),
-    ('Outros', 50, 33),
+    ('Edredom de bebê', 1, 17),
+    ('Mantas', 3, 18),
+    ('Cueiros', 10, 19),
+    ('Fraldas de pano de diversos tamanhos', 20, 20),
+    ('Toalha de banho grande', 1, 21),
+    ('Trocador portátil', 1, 22),
+    ('Sling', 1, 23),
+    ('Almofada amamentação', 1, 24),
+    ('Kit saquinhos maternidade', 1, 25),
+    ('Ruído branco', 1, 26),
+    ('Sabonete líquido', 3, 27),
+    ('Colônia para bebê', 1, 28),
+    ('Creme para bebê', 1, 29),
+    ('Óleo para bebê', 1, 30),
+    ('Lenço umedecido', 5, 31),
+    ('Termômetro Infravermelho', 1, 32),
+    ('Limpador nasal', 1, 33),
+    ('Outros', 50, 34),
 ]
 
 ESCOLHA_IMG = 'item_a_sua_escolha.png'
@@ -40,6 +41,7 @@ SLUG_BY_NAME = {
     'Lixeira anti odor': 'lixeira_anti_odor.png',
     'Lençol para berço portátil': ESCOLHA_IMG,
     'Cobertor mais grosso': ESCOLHA_IMG,
+    'Edredom de bebê': 'outros.png',
     'Mantas': ESCOLHA_IMG,
     'Cueiros': ESCOLHA_IMG,
     'Fraldas de pano de diversos tamanhos': ESCOLHA_IMG,
@@ -93,6 +95,12 @@ class Command(BaseCommand):
             self.stdout.write(
                 f'{"+" if created else "="} {name} (meta={meta})'
             )
+        outros = Gift.objects.filter(name='Outros').first()
+        edredom = Gift.objects.filter(name='Edredom de bebê').first()
+        if outros and outros.image and edredom and edredom.image.name != outros.image.name:
+            edredom.image = outros.image
+            edredom.save(update_fields=['image'])
+            self.stdout.write('Imagem de Outros aplicada ao Edredom de bebê.')
         n = Gift.objects.exclude(category__isnull=True).update(category=None)
         if n:
             self.stdout.write(f'Categoria removida de {n} presente(s).')

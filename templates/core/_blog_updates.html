@@ -1,0 +1,38 @@
+<section class="blog-updates" aria-labelledby="blog-updates-title">
+  <h2 id="blog-updates-title">Últimas atualizações</h2>
+  {% if blog_updates %}
+  <ol class="blog-updates-list">
+    {% for item in blog_updates %}
+    <li class="blog-update blog-update-{{ item.kind }}">
+      <a href="{{ item.url }}">
+        <span class="blog-update-icon" aria-hidden="true">{{ item.icon }}</span>
+        <span class="blog-update-body">
+          <span class="blog-update-title">{{ item.title }}</span>
+          {% if item.detail %}<span class="blog-update-detail">{{ item.detail }}</span>{% endif %}
+        </span>
+        <time datetime="{{ item.at|date:'c' }}">{{ item.at|date:"d/m/Y" }}</time>
+      </a>
+    </li>
+    {% endfor %}
+  </ol>
+  {% if blog_updates_page.has_other_pages %}
+  <nav class="blog-updates-pages" aria-label="Páginas das últimas atualizações">
+    {% if blog_updates_page.has_previous %}
+    <a href="?atualizacoes={{ blog_updates_page.previous_page_number }}#blog-updates-title">Anterior</a>
+    {% endif %}
+    {% for num in blog_updates_page.paginator.page_range %}
+      {% if num == blog_updates_page.number %}
+      <span class="is-current" aria-current="page">{{ num }}</span>
+      {% else %}
+      <a href="?atualizacoes={{ num }}#blog-updates-title">{{ num }}</a>
+      {% endif %}
+    {% endfor %}
+    {% if blog_updates_page.has_next %}
+    <a href="?atualizacoes={{ blog_updates_page.next_page_number }}#blog-updates-title">Próxima</a>
+    {% endif %}
+  </nav>
+  {% endif %}
+  {% else %}
+  <p class="blog-updates-empty">Ainda não houve novas interações no blog.</p>
+  {% endif %}
+</section>

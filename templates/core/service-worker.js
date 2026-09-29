@@ -66,6 +66,7 @@ self.addEventListener('fetch', (event) => {
 function shouldBypass(url, request) {
   const path = url.pathname;
   if (path.startsWith('/admin/')) return true;
+  if (path === '/novidades.json') return true;
   if (path.startsWith('/cha/acesso')) return true;
   if (path.indexOf('/reservar/') !== -1) return true;
   if (isVideoRequest(request, url)) return true;

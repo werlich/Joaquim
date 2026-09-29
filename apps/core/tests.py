@@ -180,8 +180,17 @@ class SiteNewsTests(TestCase):
         html = self.client.get('/').content.decode()
         self.assertIn('id="pwa-news-toast"', html)
         self.assertIn('data-news-revision=""', html)
+        self.assertIn('data-pwa-news-text', html)
         self.assertIn('Tem novidade no blog do Joaquim', html)
-        self.assertIn('pwa.js?v=2', html)
+        self.assertIn('pwa.js?v=3', html)
+        self.assertIn('recado-avisos.js', html)
+        self.assertNotIn('id="staff-recado-toast"', html)
+
+        feed = self.client.get('/novidades.json')
+        self.assertEqual(feed.status_code, 200)
+        self.assertEqual(feed['Cache-Control'], 'no-store')
+        self.assertEqual(feed.json()['pending_count'], 0)
+        self.assertEqual(feed.json()['revision'], '')
 
     def test_token_follows_published_timeline_and_approved_recado(self):
         from datetime import date
@@ -224,6 +233,19 @@ class SiteNewsTests(TestCase):
         self.assertIn(f'data-news-revision="t{entry.id}-r{recado.id}"', home)
         self.assertIn(f'data-news-timeline="{entry.id}"', home)
         self.assertIn(f'data-news-recado="{recado.id}"', home)
+        self.assertNotIn('id="staff-recado-toast"', home)
+        public = self.client.get('/novidades.json').json()
+        self.assertEqual(public['revision'], f't{entry.id}-r{recado.id}')
+        self.assertEqual(public['pending_count'], 0)
+
+        from django.contrib.auth.models import User
+        User.objects.create_superuser('admin', 'a@b.c', 'secret')
+        self.client.login(username='admin', password='secret')
+        staff_home = self.client.get('/').content.decode()
+        self.assertIn('id="staff-recado-toast"', staff_home)
+        self.assertIn('data-pending="1"', staff_home)
+        staff_feed = self.client.get('/novidades.json').json()
+        self.assertEqual(staff_feed['pending_count'], 1)
 
 
 @override_settings(
@@ -294,6 +316,7 @@ class PwaTests(TestCase):
         body = response.content.decode()
         self.assertIn("request.method !== 'GET'", body)
         self.assertIn('/admin/', body)
+        self.assertIn('/novidades.json', body)
         self.assertIn('/cha/acesso', body)
         self.assertIn('/reservar/', body)
         self.assertIn('joaquim-static-', body)
@@ -310,5 +333,66 @@ class PwaTests(TestCase):
         html = self.client.get('/').content.decode()
         self.assertIn('/manifest.webmanifest', html)
         self.assertIn('pwa.js', html)
+        self.assertIn('recado-avisos.js', html)
         self.assertIn('apple-mobile-web-app-capable', html)
+
+
+class BlogUpdatesHomeTests(TestCase):
+    def test_home_lista_interacoes_do_blog(self):
+        from apps.cha.models import ChaRsvp, Gift, GiftReservation
+        from apps.core.models import TimelineEntry
+        from apps.mensagens.models import Recado
+
+        TimelineEntry.objects.create(
+            event_date=date(2026, 8, 18),
+            body='18/08 - Morfologica de segundo trimestre.',
+            is_published=True,
+        )
+        Recado.objects.create(
+            nome='Vovó',
+            mensagem='Estamos ansiosos para te conhecer!',
+            status=Recado.STATUS_APPROVED,
+        )
+        Recado.objects.create(
+            nome='Tia',
+            mensagem='Ainda não.',
+            status=Recado.STATUS_PENDING,
+        )
+        gift = Gift.objects.create(name='Mantas', meta_quantity=3, order=18)
+        GiftReservation.objects.create(
+            gift=gift, guest_name='Maria Silva', quantity=1,
+        )
+        ChaRsvp.objects.create(name='João', response='sim')
+
+        html = self.client.get('/').content.decode()
+        self.assertIn('Últimas atualizações', html)
+        self.assertIn('Vovó deixou um recadinho', html)
+        self.assertNotIn('Tia deixou um recadinho', html)
+        self.assertIn('Novo momento na jornada', html)
+        self.assertIn('Morfológica 2º trimestre', html)
+        self.assertIn('Maria Silva escolheu um presente', html)
+        self.assertIn('João registrou presença', html)
+        i_updates = html.find('Últimas atualizações')
+        i_recados = html.find('Recadinhos para mim')
+        self.assertGreater(i_updates, 0)
+        self.assertGreater(i_recados, i_updates)
+
+    def test_home_pagina_atualizacoes_em_10(self):
+        from apps.mensagens.models import Recado
+
+        for i in range(11):
+            Recado.objects.create(
+                nome=f'Pessoa {i:02d}',
+                mensagem=f'Recado número {i}',
+                status=Recado.STATUS_APPROVED,
+            )
+        home = self.client.get('/').content.decode()
+        self.assertEqual(home.count('deixou um recadinho'), 10)
+        self.assertIn('?atualizacoes=2#blog-updates-title', home)
+        self.assertIn('Pessoa 10 deixou um recadinho', home)
+        self.assertNotIn('Pessoa 00 deixou um recadinho', home)
+        page2 = self.client.get('/?atualizacoes=2').content.decode()
+        self.assertIn('Pessoa 00 deixou um recadinho', page2)
+        self.assertEqual(page2.count('deixou um recadinho'), 1)
+        self.assertIn('?atualizacoes=1#blog-updates-title', page2)
 

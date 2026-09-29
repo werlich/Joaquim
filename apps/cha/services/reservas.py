@@ -22,7 +22,7 @@ def _display_author(*, guest_name: str, is_anonymous: bool) -> str:
     return guest_name.strip()
 
 
-def _maybe_message(*, text: str, author: str, origin: str) -> Message | None:
+def _maybe_message(*, text: str, author: str, origin: str, published: bool = True) -> Message | None:
     text = (text or '').strip()
     if not text:
         return None
@@ -30,7 +30,7 @@ def _maybe_message(*, text: str, author: str, origin: str) -> Message | None:
         text=text,
         author_display=author,
         origin=origin,
-        is_published=False,
+        is_published=published,
     )
 
 
