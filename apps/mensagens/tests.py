@@ -131,7 +131,7 @@ class RecadoPublicTests(TestCase):
             status=Recado.STATUS_PENDING,
         )
         html = self.client.get(reverse('home')).content.decode()
-        self.assertEqual(html.count('Home recado'), 3)
+        self.assertEqual(html.count('<article class="recado-card'), 3)
         self.assertNotIn('Home pendente secreto', html)
         self.assertIn('Ver todos os recadinhos', html)
         self.assertIn('/recadinhos/', html)

@@ -1,7 +1,8 @@
-from datetime import date
+from datetime import date, datetime
 from types import SimpleNamespace
 
 from django.test import RequestFactory, SimpleTestCase, TestCase, override_settings
+from django.utils import timezone
 
 from apps.core.context_processors import google_analytics
 from apps.core.news import latest_news
@@ -364,9 +365,17 @@ class BlogUpdatesHomeTests(TestCase):
         )
         ChaRsvp.objects.create(name='João', response='sim')
 
+        recado = Recado.objects.get(nome='Vovó')
+        recado.created_at = timezone.make_aware(
+            datetime(2026, 9, 28, 22, 15),
+        )
+        recado.save(update_fields=['created_at'])
+
         html = self.client.get('/').content.decode()
         self.assertIn('Últimas atualizações', html)
         self.assertIn('Vovó deixou um recadinho', html)
+        self.assertIn('28/09/2026', html)
+        self.assertIn('22:15', html)
         self.assertNotIn('Tia deixou um recadinho', html)
         self.assertIn('Novo momento na jornada', html)
         self.assertIn('Morfológica 2º trimestre', html)
@@ -395,4 +404,57 @@ class BlogUpdatesHomeTests(TestCase):
         self.assertIn('Pessoa 00 deixou um recadinho', page2)
         self.assertEqual(page2.count('deixou um recadinho'), 1)
         self.assertIn('?atualizacoes=1#blog-updates-title', page2)
+
+
+@override_settings(
+    INTERACTION_NOTIFY_EMAIL='fernanda@werlich.com.br',
+    SITE_URL='https://joaquim.werlich.com.br',
+    DEFAULT_FROM_EMAIL='Joaquim <noreply@joaquim.werlich.com.br>',
+)
+class InteractionEmailTests(TestCase):
+    def test_recado_envia_email(self):
+        from django.core import mail
+
+        from apps.mensagens.models import Recado
+
+        Recado.objects.create(
+            nome='Vovó',
+            mensagem='Bem-vindo, Joaquim!',
+            status=Recado.STATUS_PENDING,
+        )
+        self.assertEqual(len(mail.outbox), 1)
+        msg = mail.outbox[0]
+        self.assertEqual(msg.to, ['fernanda@werlich.com.br'])
+        self.assertIn('Vovó deixou um recadinho', msg.subject)
+        self.assertIn('Bem-vindo, Joaquim!', msg.body)
+        self.assertIn('https://joaquim.werlich.com.br/recadinhos/', msg.body)
+
+    def test_presente_e_presenca_enviam_email(self):
+        from django.core import mail
+
+        from apps.cha.models import ChaRsvp, Gift, GiftReservation
+
+        gift = Gift.objects.create(name='Mantas', meta_quantity=3)
+        GiftReservation.objects.create(gift=gift, guest_name='Maria Silva')
+        ChaRsvp.objects.create(name='João', response='sim')
+        assuntos = [m.subject for m in mail.outbox]
+        self.assertTrue(any('Maria Silva escolheu um presente' in s for s in assuntos))
+        self.assertTrue(any('João registrou presença' in s for s in assuntos))
+        self.assertTrue(all(m.to == ['fernanda@werlich.com.br'] for m in mail.outbox))
+
+    def test_formulario_publico_de_recado_dispara_email(self):
+        from django.core import mail
+        from django.urls import reverse
+
+        from apps.mensagens.models import Recado
+
+        res = self.client.post(reverse('recadinhos'), {
+            'nome': 'Tia Ana',
+            'mensagem': 'Estamos ansiosos!',
+            'relacao': Recado.REL_TIO,
+            'website': '',
+        })
+        self.assertEqual(res.status_code, 302)
+        self.assertEqual(len(mail.outbox), 1)
+        self.assertIn('Tia Ana deixou um recadinho', mail.outbox[0].subject)
 

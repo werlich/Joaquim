@@ -10,7 +10,10 @@
           <span class="blog-update-title">{{ item.title }}</span>
           {% if item.detail %}<span class="blog-update-detail">{{ item.detail }}</span>{% endif %}
         </span>
-        <time datetime="{{ item.at|date:'c' }}">{{ item.at|date:"d/m/Y" }}</time>
+        <time datetime="{{ item.at|date:'c' }}">
+          <span class="blog-update-day">{{ item.at|date:"d/m/Y" }}</span>
+          {% if item.show_time %}<span class="blog-update-hour">{{ item.at|date:"H:i" }}</span>{% endif %}
+        </time>
       </a>
     </li>
     {% endfor %}

@@ -113,6 +113,28 @@ MEDIA_ROOT = BASE_DIR / 'media'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
+SITE_URL = os.environ.get('SITE_URL', 'https://joaquim.werlich.com.br')
+DEFAULT_FROM_EMAIL = os.environ.get(
+    'DEFAULT_FROM_EMAIL',
+    'Joaquim Werlich Galvão <noreply@joaquim.werlich.com.br>',
+)
+INTERACTION_NOTIFY_EMAIL = os.environ.get(
+    'INTERACTION_NOTIFY_EMAIL',
+    'fernanda@werlich.com.br',
+)
+EMAIL_BACKEND = os.environ.get(
+    'EMAIL_BACKEND',
+    'django.core.mail.backends.console.EmailBackend'
+    if DEBUG
+    else 'django.core.mail.backends.smtp.EmailBackend',
+)
+EMAIL_HOST = os.environ.get('EMAIL_HOST', '127.0.0.1')
+EMAIL_PORT = int(os.environ.get('EMAIL_PORT', '25'))
+EMAIL_HOST_USER = os.environ.get('EMAIL_HOST_USER', '')
+EMAIL_HOST_PASSWORD = os.environ.get('EMAIL_HOST_PASSWORD', '')
+EMAIL_USE_TLS = os.environ.get('EMAIL_USE_TLS', '0') == '1'
+EMAIL_USE_SSL = os.environ.get('EMAIL_USE_SSL', '0') == '1'
+
 GA_MEASUREMENT_ID_DEFAULT = 'G-90QRG4LWN0'
 GA_MEASUREMENT_IDS = {
     'npcp.signau.cc': 'G-3G29SCX6ZJ',

@@ -23,6 +23,7 @@ class BlogUpdate:
     title: str
     detail: str
     url: str
+    show_time: bool = True
 
 
 def _aware(value: datetime) -> datetime:
@@ -62,6 +63,7 @@ def latest_blog_updates() -> list[BlogUpdate]:
             title='Novo momento na jornada',
             detail=display_title(entry),
             url=jornada_url,
+            show_time=False,
         ))
 
     presentes_url = reverse('cha_presentes')
